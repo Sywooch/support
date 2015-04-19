@@ -1,7 +1,7 @@
-Yii 2 Basic Application Template
+Yii 2 Support Application Template
 ================================
 
-Yii 2 Basic Application Template is a skeleton Yii 2 application best for
+Yii 2 Support Application Template is a skeleton Yii 2 application best for
 rapidly creating small projects.
 
 The template contains the basic features including user login/logout and a contact page.
@@ -43,7 +43,7 @@ a directory named `basic` that is directly under the Web root.
 You can then access the application through the following URL:
 
 ~~~
-http://localhost/basic/web/
+http://support/web/
 ~~~
 
 
@@ -63,7 +63,7 @@ Now you should be able to access the application through the following URL, assu
 directly under the Web root.
 
 ~~~
-http://localhost/basic/web/
+http://support/web/
 ~~~
 
 
@@ -77,9 +77,9 @@ Edit the file `config/db.php` with real data, for example:
 ```php
 return [
     'class' => 'yii\db\Connection',
-    'dsn' => 'mysql:host=localhost;dbname=yii2basic',
-    'username' => 'root',
-    'password' => '1234',
+    'dsn' => 'mysql:host=localhost;dbname=support',
+    'username' => 'support_user',
+    'password' => 'xBLsP6F2rXMnZAFF',
     'charset' => 'utf8',
 ];
 ```
