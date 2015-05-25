@@ -8,14 +8,50 @@ $config = [
     'bootstrap' => ['log'],
     'language' => 'ru-RU',
     'components' => [
+        /*'authManager' => [
+            'class' => 'yii\rbac\PhpManager',
+            'defaultRoles' => ['user','moder','admin'], //здесь прописываем роли
+            //зададим куда будут сохраняться наши файлы конфигураций RBAC
+            'itemFile' => '@common/components/rbac/items.php',
+            'assignmentFile' => '@common/components/rbac/assignments.php',
+            'ruleFile' => '@common/components/rbac/rules.php'
+        ],*/
         'urlManager' => [
-            'enablePrettyUrl' => false,
+            'class' => 'yii\web\UrlManager',
+            'enablePrettyUrl' => true,
+            'enableStrictParsing' => true,
             'showScriptName' => false,
-            'enableStrictParsing' => false
+            'rules' => [
+                '/' => 'site/index',
+                '/about' => 'site/about',
+                '/contact' => 'site/contact',
+                '/captcha' => 'site/captcha',
+                '/login' => 'site/login',
+                '/logout' => 'site/logout',
+
+                'orders' => 'order/index',
+                'order/<id:\d+>' => 'order/view',
+                'order/create' => 'order/create',
+                'order/update/<id:\d+>' => 'order/update',
+                
+                'users' => 'user/index',
+                'user/<id:\d+>' => 'user/view',
+                'user/create' => 'user/create',
+                'user/update/<id:\d+>' => 'user/update',
+
+                '/api/orders/get'   => 'api/list',
+                '/api/order/update' => 'api/update',
+                '/api/order/delete' => 'api/delete'
+
+                //['class' => 'yii\rest\UrlRule', 'controller' => 'api']
+            ]
         ],
         'request' => [
             // !!! insert a secret key in the following (if it is empty) - this is required by cookie validation
             'cookieValidationKey' => 'yJXlOaqfzyWNFwntgAfQLUp6_HX4AnU-',
+            'parsers' => [
+                'application/json' => 'yii\web\JsonParser'
+            ]
         ],
         'cache' => [
             'class' => 'yii\caching\FileCache',
@@ -32,7 +68,15 @@ $config = [
             // send all mails to a file by default. You have to set
             // 'useFileTransport' to false and configure a transport
             // for the mailer to send real emails.
-            'useFileTransport' => false
+            'useFileTransport' => false,
+            /*'transport' => [
+ *             'class' => 'Swift_SmtpTransport',
+ *             'host' => 'localhost',
+ *             'username' => 'username',
+ *             'password' => 'password',
+ *             'port' => '587',
+ *             'encryption' => 'tls',
+ *          ]*/
         ],
         'log' => [
             'traceLevel' => YII_DEBUG ? 3 : 0,

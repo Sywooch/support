@@ -6,6 +6,7 @@ use Yii;
 use yii\base\NotSupportedException;
 use yii\db\ActiveRecord;
 use yii\web\IdentityInterface;
+use app\models\Group;
 
 /**
  * This is the model class for table "tbl_user".
@@ -24,6 +25,8 @@ use yii\web\IdentityInterface;
  */
 class User extends ActiveRecord implements IdentityInterface
 {
+    private $group = null;
+
     /**
      * @inheritdoc
      */
@@ -31,6 +34,19 @@ class User extends ActiveRecord implements IdentityInterface
     {
         return 'tbl_user';
     }
+
+    /*public function behaviors()
+    {
+        return [
+            'access' => [
+                'class' => \yii\filters\AccessControl::className(),
+                'only' => ['view'],
+                'rules' => [
+
+                ]
+            ]
+        ];
+    }*/
 
     /**
      * @inheritdoc
@@ -127,6 +143,19 @@ class User extends ActiveRecord implements IdentityInterface
         return $this->getPrimaryKey();
     }
 
+    public function getGroup()
+    {
+        if (empty($this->group_id)) {
+            return null;
+        }
+
+        if (empty($this->group)) {
+            $this->group = Group::find()->where(['id' => $this->group_id])->one();
+        }
+
+        return $this->group;
+    }
+
     /**
      * @inheritdoc
      */
@@ -208,4 +237,19 @@ class User extends ActiveRecord implements IdentityInterface
             return false;
         }
     }
+
+    /*public function beforeDelete()
+    {
+        if (parent::beforeDelete()) {
+            
+            if (empty($user->getId())) {
+                $this->addError("user_sender", "Пользователь не авторизован");
+                return false;
+            }
+
+            return true;
+        } else {
+            return false;
+        }
+    }*/
 }

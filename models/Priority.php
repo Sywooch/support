@@ -3,6 +3,7 @@
 namespace app\models;
 
 use Yii;
+use app\models\Order;
 
 /**
  * This is the model class for table "tbl_priority".
@@ -11,7 +12,7 @@ use Yii;
  * @property string $code
  * @property integer $name
  *
- * @property TblOrder[] $tblOrders
+ * @property Order[] $tblOrders
  */
 class Priority extends \yii\db\ActiveRecord
 {
@@ -50,8 +51,8 @@ class Priority extends \yii\db\ActiveRecord
     /**
      * @return \yii\db\ActiveQuery
      */
-    public function getTblOrders()
+    public function getOrders()
     {
-        return $this->hasMany(TblOrder::className(), ['priority_id' => 'id']);
+        return $this->hasMany(Order::className(), ['priority_id' => 'id']);
     }
 }

@@ -38,6 +38,11 @@ $this->params['breadcrumbs'][] = $this->title;
             'name',
             //'description:ntext',
             'category_id',
+            //'model',
+            //'serial_number',
+            //'sender_location',
+            //'sender_name',
+            //'sender_position',
             'time_hours:datetime',
             'complexity',
 

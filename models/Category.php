@@ -3,6 +3,7 @@
 namespace app\models;
 
 use Yii;
+use app\models\Order;
 
 /**
  * This is the model class for table "tbl_category".
@@ -50,6 +51,6 @@ class Category extends \yii\db\ActiveRecord
      */
     public function getTblOrders()
     {
-        return $this->hasMany(TblOrder::className(), ['category_id' => 'id']);
+        return $this->hasMany(Order::className(), ['category_id' => 'id']);
     }
 }

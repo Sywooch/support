@@ -3,6 +3,7 @@
 namespace app\models;
 
 use Yii;
+use app\models\User;
 
 /**
  * This is the model class for table "tbl_group".
@@ -51,8 +52,8 @@ class Group extends \yii\db\ActiveRecord
     /**
      * @return \yii\db\ActiveQuery
      */
-    public function getTblUsers()
+    public function getUsers()
     {
-        return $this->hasMany(TblUser::className(), ['group_id' => 'id']);
+        return $this->hasMany(User::className(), ['group_id' => 'id']);
     }
 }

@@ -32,20 +32,49 @@ AppAsset::register($this);
                     'class' => 'navbar-inverse navbar-fixed-top',
                 ],
             ]);
+            $navItems = [
+                ['label' => 'Главная', 'url' => ['/site/index']],
+                ['label' => 'О системе', 'url' => ['/site/about']],
+            ];
+            
+            if (Yii::$app->user->isGuest) {
+                $navItems[] = ['label' => 'Обратная связь', 'url' => ['/site/contact']];
+            } else {
+                $userGroup = Yii::$app->user->getIdentity()->getGroup();
+
+                if (empty($userGroup)) {    // no group
+                    $navItems[] = ['label' => 'Обратная связь', 'url' => ['/site/contact']];
+                } else {
+                    $navItems[] = ['label' => 'Заявки', 'url' => ['/order/index']];
+
+                    if ($userGroup->code === 'admin') { // admin group
+                        $navItems[] = ['label' => 'Пользователи', 'url' => ['/user/index']];
+                    } else {
+                        $navItems[] = ['label' => 'Обратная связь', 'url' => ['/site/contact']];
+                    }
+                }
+            }
+
+            if (Yii::$app->user->isGuest) {
+                $navItems[] = ['label' => 'Войти', 'url' => ['/site/login']];
+            } else {
+                $navItems[] = [
+                    'label' => Yii::$app->user->identity->login,
+                    'url' => Yii::$app->urlManager->createUrl([
+                        '/user/update',
+                        'id' => Yii::$app->user->identity->id
+                    ])
+                ];
+                $navItems[] = [
+                    'label' => 'Выйти',
+                    'url' => ['/site/logout'],
+                    'linkOptions' => ['data-method' => 'post']
+                ];
+            }
+
             echo Nav::widget([
                 'options' => ['class' => 'navbar-nav navbar-right'],
-                'items' => [
-                    ['label' => 'Главная', 'url' => ['/site/index']],
-                    ['label' => 'О системе', 'url' => ['/site/about']],
-                    ['label' => 'Обратная связь', 'url' => ['/site/contact']],
-                    ['label' => 'Пользователи', 'url' => ['/user/index']],
-                    ['label' => 'Заявки', 'url' => ['/order/index']],
-                    Yii::$app->user->isGuest ?
-                        ['label' => 'Войти', 'url' => ['/site/login']] :
-                        ['label' => 'Выйти (' . Yii::$app->user->identity->login . ')',
-                            'url' => ['/site/logout'],
-                            'linkOptions' => ['data-method' => 'post']],
-                ],
+                'items' => $navItems
             ]);
             NavBar::end();
         ?>
@@ -54,6 +83,7 @@ AppAsset::register($this);
             <?= Breadcrumbs::widget([
                 'links' => isset($this->params['breadcrumbs']) ? $this->params['breadcrumbs'] : [],
             ]) ?>
+
             <?= $content ?>
         </div>
     </div>

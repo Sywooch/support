@@ -15,6 +15,8 @@ use yii\filters\VerbFilter;
  */
 class UserController extends Controller
 {
+    public $modelClass = 'app\models\User';
+
     public function behaviors()
     {
         return [

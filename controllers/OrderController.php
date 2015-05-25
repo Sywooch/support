@@ -6,6 +6,8 @@ use Yii;
 use app\models\Order;
 use app\models\Category;
 use app\models\Priority;
+use app\models\Status;
+use app\models\User;
 use app\models\OrderSearch;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
@@ -92,7 +94,14 @@ class OrderController extends Controller
             return $this->redirect(['view', 'id' => $model->id]);
         } else {
             return $this->render('update', [
-                'model' => $model
+                'model' => $model,
+                'category' => Category::find($model->category_id)->one(),
+                'priority' => Priority::find($model->priority_id)->one(),
+                'status' => Status::find()->all(),
+                'user' => User::find($model->user_sender)
+                            ->select(['id', 'login', 'name', 'last_name'])
+                            ->one(),
+
             ]);
         }
     }
@@ -106,7 +115,6 @@ class OrderController extends Controller
     public function actionDelete($id)
     {
         $this->findModel($id)->delete();
-
         return $this->redirect(['index']);
     }
 
@@ -122,7 +130,7 @@ class OrderController extends Controller
         if (($model = Order::findOne($id)) !== null) {
             return $model;
         } else {
-            throw new NotFoundHttpException('The requested page does not exist.');
+            throw new NotFoundHttpException('Страница не существует');
         }
     }
 }

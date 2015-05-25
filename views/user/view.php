@@ -8,7 +8,7 @@ use yii\helpers\ArrayHelper;
 /* @var $model app\models\User */
 
 $this->title = $model->name;
-$this->params['breadcrumbs'][] = ['label' => 'Users', 'url' => ['index']];
+$this->params['breadcrumbs'][] = ['label' => 'Пользователи', 'url' => ['index']];
 $this->params['breadcrumbs'][] = $this->title;
 
 $groupArray = ArrayHelper::map($group,'id','name');
