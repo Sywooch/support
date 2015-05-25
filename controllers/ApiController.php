@@ -55,7 +55,7 @@ class ApiController extends ActiveController
 		}
 
 		$newStatus = Status::find()->where(['code' => 'new'])->one();
-		
+
 		if (empty($newStatus)) {
 			$this->error = 'Ошибка в структуре БД. Не найден статус заявки с кодом new';
 			return [
@@ -64,8 +64,10 @@ class ApiController extends ActiveController
 			];
 		}
 
+		$user = User::find()->where(['login' => $login])->one();
+
 		$query = new Query;
-		$query	->select([
+		$query->select([
 					Order::tableName().'.*',
 					User::tableName().'.login as user_sender_login',
 					User::tableName().'.name as user_sender_name',
