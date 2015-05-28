@@ -13,11 +13,11 @@ $this->params['breadcrumbs'][] = $this->title;
 <div class="site-contact">
     <h1><?= Html::encode($this->title) ?></h1>
 
-    <?if (Yii::$app->session->hasFlash('contactFormSubmitted')): ?>
+    <?if (Yii::$app->session->hasFlash('contactFormSubmitted')):?>
         <div class="alert alert-success">
             Спасибо за вопрос! В ближайшее время с Вами свяжеться наш специалист.
         </div>
-    <?else: ?>
+    <?else:?>
         <p>
             Если у Вас возникли вопросы или появилась проблема, напишите нам. Мы обязательно ответим.
         </p>
@@ -38,5 +38,5 @@ $this->params['breadcrumbs'][] = $this->title;
                 <?php ActiveForm::end(); ?>
             </div>
         </div>
-    <?endif; ?>
+    <?endif;?>
 </div>
