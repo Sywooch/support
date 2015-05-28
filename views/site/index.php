@@ -9,7 +9,7 @@ $this->title = 'Support App';
 
         <p class="lead">Здесь будет главный текст.</p>
 
-        <p><a class="btn btn-lg btn-success" href="/site/about">Познакомиться</a></p>
+        <p><a class="btn btn-lg btn-success" href="<?=Yii::$app->urlManager->createUrl(['site/about'])?>">Познакомиться</a></p>
     </div>
 
     <div class="body-content">
@@ -20,21 +20,21 @@ $this->title = 'Support App';
 
                 <p>Текст 1</p>
 
-                <p><a class="btn btn-default" href="/site/about/#block1">Ссылка 1</a></p>
+                <p><a class="btn btn-default" href="<?=Yii::$app->urlManager->createUrl(['site/about', '#' => 'block1'])?>">Ссылка 1</a></p>
             </div>
             <div class="col-lg-4">
                 <h2>Заголовок 2</h2>
 
                 <p>Текст 2</p>
 
-                <p><a class="btn btn-default" href="/site/about/#block2">Ссылка 2</a></p>
+                <p><a class="btn btn-default" href="<?=Yii::$app->urlManager->createUrl(['site/about', '#' => 'block2'])?>">Ссылка 2</a></p>
             </div>
             <div class="col-lg-4">
                 <h2>Заголовок 3</h2>
 
                 <p>Текст 3</p>
 
-                <p><a class="btn btn-default" href="/site/about/#block3">Ссылка 3</a></p>
+                <p><a class="btn btn-default" href="<?=Yii::$app->urlManager->createUrl(['site/about', '#' => 'block3'])?>">Ссылка 3</a></p>
             </div>
         </div>
 
