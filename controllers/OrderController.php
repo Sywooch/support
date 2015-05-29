@@ -7,11 +7,13 @@ use app\models\Order;
 use app\models\Category;
 use app\models\Priority;
 use app\models\Status;
+use app\models\Group;
 use app\models\User;
 use app\models\OrderSearch;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
+use yii\web\ForbiddenHttpException;
 
 /**
  * OrderController implements the CRUD actions for Order model.
@@ -36,13 +38,17 @@ class OrderController extends Controller
      */
     public function actionIndex()
     {
-        $searchModel = new OrderSearch();
-        $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
+        if (Yii::$app->user->isGuest) {
+            throw new ForbiddenHttpException("Доступ запрещен");
+        } else {
+            $searchModel = new OrderSearch();
+            $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
 
-        return $this->render('index', [
-            'searchModel' => $searchModel,
-            'dataProvider' => $dataProvider,
-        ]);
+            return $this->render('index', [
+                'searchModel' => $searchModel,
+                'dataProvider' => $dataProvider,
+            ]);
+        }
     }
 
     /**
@@ -52,7 +58,27 @@ class OrderController extends Controller
      */
     public function actionView($id)
     {
+        if (Yii::$app->user->isGuest) {
+            throw new ForbiddenHttpException("Доступ запрещен для неавторизованных пользователей");
+            return;
+        }
+
         $order = $this->findModel($id);
+
+        if ($order->user_sender != Yii::$app->user->identity->id &&
+            Group::find()->where(['code' => 'user'])->one()->id == Yii::$app->user->identity->group_id
+        ) {
+            throw new ForbiddenHttpException("Доступ запрещен к чужой заявке пользователя");
+            return;
+        }
+
+        if (!empty($order->user_answer) &&
+            $order->user_answer != Yii::$app->user->identity->id &&
+            Group::find()->where(['code' => 'manager'])->one()->id == Yii::$app->user->identity->group_id
+        ) {
+            throw new ForbiddenHttpException("Доступ запрещен к заявке, обрабатываемой другим сотрудником технической поддержки");
+            return;
+        }
 
         return $this->render('view', [
             'model'    => $order,
@@ -67,16 +93,24 @@ class OrderController extends Controller
      */
     public function actionCreate()
     {
-        $model = new Order();
-
-        if ($model->load(Yii::$app->request->post()) && $model->save()) {
-            return $this->redirect(['view', 'id' => $model->id]);
+        if (Yii::$app->user->isGuest) {
+            throw new ForbiddenHttpException("Доступ запрещен для неавторизованных пользователей");
+        } else if (
+            Group::find()->where(['code' => 'user'])->one()->id != Yii::$app->user->identity->group_id
+        ) {
+            throw new ForbiddenHttpException("Доступ запрещен. Заявки могут создавать только пользователи");
         } else {
-            return $this->render('create', [
-                'model' => $model,
-                'category' => Category::find()->all(),
-                'priority' => Priority::find()->all()
-            ]);
+            $model = new Order();
+
+            if ($model->load(Yii::$app->request->post()) && $model->save()) {
+                return $this->redirect(['view', 'id' => $model->id]);
+            } else {
+                return $this->render('create', [
+                    'model' => $model,
+                    'category' => Category::find()->all(),
+                    'priority' => Priority::find()->all()
+                ]);
+            }
         }
     }
 
@@ -88,7 +122,39 @@ class OrderController extends Controller
      */
     public function actionUpdate($id)
     {
+        if (Yii::$app->user->isGuest) {
+            throw new ForbiddenHttpException("Доступ запрещен для неавторизованных пользователей");
+            return;
+        }
+
         $model = $this->findModel($id);
+
+        if (
+            $model->user_sender != Yii::$app->user->identity->id
+            &&
+            Group::find()->where(['code' => 'user'])->one()->id == Yii::$app->user->identity->group_id
+        ) {
+            throw new ForbiddenHttpException("Доступ запрещен. Вы не можете редактировать чужую заявку");
+            return;
+        } else if (
+            !empty($model->user_answer)
+            &&
+            $model->user_answer != Yii::$app->user->identity->id
+            &&
+            Group::find()->where(['code' => 'manager'])->one()->id == Yii::$app->user->identity->group_id
+        ) {
+            throw new ForbiddenHttpException("Доступ запрещен. Вы не можете редактировать принятую другим сотрудником заявку");
+            return;
+        } else if (
+            $model->user_sender == Yii::$app->user->identity->id
+            &&
+            Group::find()->where(['code' => 'user'])->one()->id == Yii::$app->user->identity->group_id
+            &&
+            !empty($model->user_answer)
+        ) {
+            throw new ForbiddenHttpException("Редактирование заявки запрещено. Заявка уже принята сотрудником технической поддержки");
+            return;
+        }
 
         if ($model->load(Yii::$app->request->post()) && $model->save()) {
             return $this->redirect(['view', 'id' => $model->id]);
@@ -114,8 +180,27 @@ class OrderController extends Controller
      */
     public function actionDelete($id)
     {
-        $this->findModel($id)->delete();
-        return $this->redirect(['index']);
+        if (Yii::$app->user->isGuest) {
+            throw new ForbiddenHttpException("Удаление заявки запрещено для неавторизованных пользователей");
+            return;
+        }
+
+        $model = $this->findModel($id);
+
+        if (
+            Group::find()->where(['code' => 'admin'])->one()->id == Yii::$app->user->identity->group_id
+            ||
+            Group::find()->where(['code' => 'manager'])->one()->id == Yii::$app->user->identity->group_id
+            &&
+            !empty($model->user_answer)
+            &&
+            $model->user_answer == Yii::$app->user->identity->id
+        ) {
+            $model->delete();
+            return $this->redirect(['index']);
+        } else {
+            throw new ForbiddenHttpException("Удаление заявки запрещено");
+        }
     }
 
     /**
@@ -130,7 +215,7 @@ class OrderController extends Controller
         if (($model = Order::findOne($id)) !== null) {
             return $model;
         } else {
-            throw new NotFoundHttpException('Страница не существует');
+            throw new NotFoundHttpException('Заявка не найдена');
         }
     }
 }

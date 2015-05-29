@@ -7,6 +7,7 @@ use yii\helpers\ArrayHelper;
 /* @var $this yii\web\View */
 /* @var $model app\models\User */
 /* @var $form yii\widgets\ActiveForm */
+/* @var $groups Array app\models\Group */
 /* @var $group app\models\Group */
 ?>
 
@@ -18,8 +19,10 @@ use yii\helpers\ArrayHelper;
 
     <?= $form->field($model, 'password')->passwordInput(['maxlength' => 255, 'value' => '']) ?>
 
-    <?= $form->field($model, 'group_id')->DropDownList(ArrayHelper::map($group,'id','name')) ?>
-    
+    <? if ($model->isNewRecord || (!$model->isNewRecord && !empty($group) && $group->code == 'admin')):?>
+        <?= $form->field($model, 'group_id')->DropDownList(ArrayHelper::map($groups,'id','name')) ?>
+    <?endif?>
+
     <?= $form->field($model, 'name')->textInput(['maxlength' => 50]) ?>
 
     <?= $form->field($model, 'second_name')->textInput(['maxlength' => 50]) ?>

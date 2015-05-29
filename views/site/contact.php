@@ -11,9 +11,9 @@ $this->title = 'Обратная связь';
 $this->params['breadcrumbs'][] = $this->title;
 ?>
 <div class="site-contact">
-    <h1><?= Html::encode($this->title) ?></h1>
+    <h1><?=Html::encode($this->title)?></h1>
 
-    <?if (Yii::$app->session->hasFlash('contactFormSubmitted')):?>
+    <?if(Yii::$app->session->hasFlash('contactFormSubmitted')):?>
         <div class="alert alert-success">
             Спасибо за вопрос! В ближайшее время с Вами свяжеться наш специалист.
         </div>
@@ -35,7 +35,7 @@ $this->params['breadcrumbs'][] = $this->title;
                     <div class="form-group">
                         <?= Html::submitButton('Отправить', ['class' => 'btn btn-primary', 'name' => 'contact-button']) ?>
                     </div>
-                <?php ActiveForm::end(); ?>
+                <?ActiveForm::end();?>
             </div>
         </div>
     <?endif;?>

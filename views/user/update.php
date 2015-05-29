@@ -4,6 +4,7 @@ use yii\helpers\Html;
 
 /* @var $this yii\web\View */
 /* @var $model app\models\User */
+/* @var $groups Array app\models\Group */
 /* @var $group app\models\Group */
 
 $this->title = 'Изменение пользователя [' . $model->id . ']: ' . $model->login;
@@ -17,6 +18,7 @@ $this->params['breadcrumbs'][] = 'Изменение';
 
     <?= $this->render('_form', [
         'model' => $model,
+        'groups' => $groups,
         'group' => $group
     ]) ?>
 

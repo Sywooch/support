@@ -5,7 +5,7 @@ use yii\helpers\Html;
 
 /* @var $this yii\web\View */
 /* @var $model app\models\User */
-/* @var $group app\models\Group */
+/* @var $groups app\models\Group */
 
 $this->title = 'Создание пользователя';
 $this->params['breadcrumbs'][] = ['label' => 'Пользователи', 'url' => ['index']];
@@ -17,7 +17,7 @@ $this->params['breadcrumbs'][] = $this->title;
 
     <?= $this->render('_form', [
         'model' => $model,
-        'group' => $group
+        'groups' => $groups
     ]) ?>
 
 </div>

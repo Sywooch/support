@@ -9,6 +9,7 @@ use app\models\UserSearch;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
+use yii\web\ForbiddenHttpException;
 
 /**
  * UserController implements the CRUD actions for User model.
@@ -35,13 +36,19 @@ class UserController extends Controller
      */
     public function actionIndex()
     {
-        $searchModel = new UserSearch();
-        $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
+        if (Yii::$app->user->isGuest) {
+            throw new ForbiddenHttpException("Доступ запрещен");
+        } else if (Yii::$app->user->identity->group_id != Group::find()->where(['code' => 'admin'])->one()->id) {
+            throw new ForbiddenHttpException("Доступ запрещен");
+        } else {
+            $searchModel = new UserSearch();
+            $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
 
-        return $this->render('index', [
-            'searchModel' => $searchModel,
-            'dataProvider' => $dataProvider,
-        ]);
+            return $this->render('index', [
+                'searchModel' => $searchModel,
+                'dataProvider' => $dataProvider,
+            ]);
+        }
     }
 
     /**
@@ -51,10 +58,19 @@ class UserController extends Controller
      */
     public function actionView($id)
     {
-        return $this->render('view', [
-            'model' => $this->findModel($id),
-            'group' => Group::find()->all()
-        ]);
+        if (Yii::$app->user->isGuest) {
+            throw new ForbiddenHttpException("Доступ запрещен");
+        } else if (
+            $id != Yii::$app->user->identity->id &&
+            Group::find()->where(['code' => 'admin'])->one()->id != Yii::$app->user->identity->group_id
+        ) {
+            throw new ForbiddenHttpException("Доступ запрещен");
+        } else {
+            return $this->render('view', [
+                'model' => $this->findModel($id),
+                'group' => Group::find()->all()
+            ]);
+        }
     }
 
     /**
@@ -64,15 +80,21 @@ class UserController extends Controller
      */
     public function actionCreate()
     {
-        $model = new User(['scenario' => 'create']);
-
-        if ($model->load(Yii::$app->request->post()) && $model->save()) {
-            return $this->redirect(['view', 'id' => $model->id]);
+        if (Yii::$app->user->isGuest) {
+            throw new ForbiddenHttpException("Доступ запрещен");
+        } else if (Group::find()->where(['code' => 'admin'])->one()->id != Yii::$app->user->identity->group_id) {
+            throw new ForbiddenHttpException("Доступ запрещен");
         } else {
-            return $this->render('create', [
-                'model' => $model,
-                'group' => Group::find()->all()
-            ]);
+            $model = new User(['scenario' => 'create']);
+
+            if ($model->load(Yii::$app->request->post()) && $model->save()) {
+                return $this->redirect(['view', 'id' => $model->id]);
+            } else {
+                return $this->render('create', [
+                    'model' => $model,
+                    'groups' => Group::find()->all()
+                ]);
+            }
         }
     }
 
@@ -84,15 +106,25 @@ class UserController extends Controller
      */
     public function actionUpdate($id)
     {
-        $model = $this->findModel($id);
-
-        if ($model->load(Yii::$app->request->post()) && $model->save()) {
-            return $this->redirect(['view', 'id' => $model->id]);
+        if (Yii::$app->user->isGuest) {
+            throw new ForbiddenHttpException("Доступ запрещен");
+        } else if (
+            $id != Yii::$app->user->identity->id &&
+            Group::find()->where(['code' => 'admin'])->one()->id != Yii::$app->user->identity->group_id
+        ) {
+            throw new ForbiddenHttpException("Доступ запрещен");
         } else {
-            return $this->render('update', [
-                'model' => $model,
-                'group' => Group::find()->all()
-            ]);
+            $model = $this->findModel($id);
+
+            if ($model->load(Yii::$app->request->post()) && $model->save()) {
+                return $this->redirect(['view', 'id' => $model->id]);
+            } else {
+                return $this->render('update', [
+                    'model' => $model,
+                    'groups' => Group::find()->all(),
+                    'group' => Group::find()->where(['id' => $model->group_id])->one()
+                ]);
+            }
         }
     }
 
@@ -104,9 +136,16 @@ class UserController extends Controller
      */
     public function actionDelete($id)
     {
-        $this->findModel($id)->delete();
-
-        return $this->redirect(['index']);
+         if (Yii::$app->user->isGuest) {
+            throw new ForbiddenHttpException("Доступ запрещен");
+        } else if ($id == Yii::$app->user->identity->id) {
+            throw new ForbiddenHttpException("Доступ запрещен. Удаление самого себя не возможно");
+        } else if (Group::find()->where(['code' => 'admin'])->one()->id != Yii::$app->user->identity->group_id) {
+            throw new ForbiddenHttpException("Доступ запрещен. Нельзя удалять чужого пользователя");
+        } else {
+            $this->findModel($id)->delete();
+            return $this->redirect(['index']);
+        }
     }
 
     /**
@@ -121,7 +160,7 @@ class UserController extends Controller
         if (($model = User::findOne($id)) !== null) {
             return $model;
         } else {
-            throw new NotFoundHttpException('Страница не найдена');
+            throw new NotFoundHttpException('Пользователь не найден');
         }
     }
 }

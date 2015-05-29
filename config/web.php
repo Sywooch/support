@@ -33,11 +33,13 @@ $config = [
                 'order/<id:\d+>' => 'order/view',
                 'order/create' => 'order/create',
                 'order/update/<id:\d+>' => 'order/update',
-                
+                'order/delete/<id:\d+>' => 'order/delete',
+
                 'users' => 'user/index',
                 'user/<id:\d+>' => 'user/view',
                 'user/create' => 'user/create',
                 'user/update/<id:\d+>' => 'user/update',
+                'user/delete/<id:\d+>' => 'user/delete',
 
                 '/api/orders/get'   => 'api/list',
                 '/api/order/update' => 'api/update',
