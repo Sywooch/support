@@ -5,6 +5,7 @@ namespace app\models;
 use Yii;
 use yii\db\Expression;
 use app\models\Status;
+use DateTime;
 
 /**
  * This is the model class for table "tbl_order".
@@ -85,6 +86,12 @@ class Order extends \yii\db\ActiveRecord
                 ['model', 'serial_number'], 'string', 'max' => 50
             ],
             [
+                ['serial_number'],
+                'match',
+                'pattern' => '/^[A-Za-z0-9]+$/',
+                'message' => 'Серийный номер должен состоять букв латинского алфавита и цифр'
+            ],
+            [
                 ['sender_name', 'sender_position'], 'string', 'max' => 100
             ],
             [
@@ -111,7 +118,7 @@ class Order extends \yii\db\ActiveRecord
         return [
             'id' => 'ID',
             'user_sender' => 'Пользователь',
-            'user_answer' => 'Сотрудник',
+            'user_answer' => 'Специалист',
             'priority_id' => 'Приоритет',
             'date_create' => 'Дата создания',
             'date_finish' => 'Дата завершения',
@@ -178,13 +185,6 @@ class Order extends \yii\db\ActiveRecord
             
             if ($insert) {
 
-                /*
-                print('<pre>');
-                print_r($this);
-                print('</pre>');
-                die();
-                */
-
                 $user = Yii::$app->user;
 
                 if (empty($user->getId())) {
@@ -192,17 +192,24 @@ class Order extends \yii\db\ActiveRecord
                     return false;
                 }
 
-                $status = Status::find()->where(['code' => 'new'])->one();
+                if (empty($this->user_sender)) {
+                    $this->user_sender = $user->getId();
+                }
+                
+                if (empty($this->status_id)) {
+                    $status = Status::find()->where(['code' => 'new'])->one();
 
-                if (empty($status)) {
-                    $this->addError("status_id", "Статус заявки не определен");
-                    return false;
+                    if (empty($status)) {
+                        $this->addError("status_id", "Статус заявки не определен");
+                        return false;
+                    }
+
+                    $this->status_id = $status->id;
                 }
 
-                $this->user_sender = $user->getId();
                 $this->date_create = new Expression("NOW()");
                 $this->date_update = $this->date_create;
-                $this->status_id = $status->id;
+                $this->date_deadline = (new DateTime(date("Y-m-d H:i:s", strtotime($this->date_deadline))))->format("Y-m-d H:i:s");
 
             } else {
 
@@ -213,9 +220,15 @@ class Order extends \yii\db\ActiveRecord
                     return false;
                 }
 
-                $this->user_answer = $user->getId();
-                $this->date_update = new Expression("NOW()");
+                if (
+                    empty($this->user_answer)
+                    &&
+                    $user->identity->group_id == Group::find()->where(['code' => 'manager'])->one()->id
+                ) {
+                    $this->user_answer = $user->getId();
+                }
                 
+                $this->date_update = new Expression("NOW()");
                 $statusDone = Status::find()->where(['code' => 'done'])->one();
 
                 if ($statusDone->id == $this->status_id) {
@@ -224,9 +237,16 @@ class Order extends \yii\db\ActiveRecord
                     $this->date_finish = null;
                 }
 
-                if (empty($this->date_start)) {
+                if (
+                    empty($this->date_start)
+                    &&
+                    $user->identity->group_id != Group::find()->where(['code' => 'user'])->one()->id
+                ) {
                     $this->date_start = new Expression("NOW()");
                 }
+
+                //$this->date_deadline = Yii::$app->formatter->asDate($this->date_deadline, 'php:Y-m-d H:i:s'); // timezone bug
+                $this->date_deadline = (new DateTime(date("Y-m-d H:i:s", strtotime($this->date_deadline))))->format("Y-m-d H:i:s");
             }
 
             return true;

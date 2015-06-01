@@ -14,6 +14,7 @@ use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
 use yii\web\ForbiddenHttpException;
+use DateTime;
 
 /**
  * OrderController implements the CRUD actions for Order model.
@@ -80,9 +81,26 @@ class OrderController extends Controller
             return;
         }
 
+        $order->date_create = (new DateTime(date("Y-m-d H:i:s", strtotime($order->date_create))))->format("d.m.Y H:i");
+        $order->date_update = (new DateTime(date("Y-m-d H:i:s", strtotime($order->date_update))))->format("d.m.Y H:i");
+        
+        if (!empty($order->date_start)) {
+            $order->date_start = (new DateTime(date("Y-m-d H:i:s", strtotime($order->date_start))))->format("d.m.Y H:i");
+        }
+
+        if (!empty($order->date_finish)) {
+            $order->date_finish = (new DateTime(date("Y-m-d H:i:s", strtotime($order->date_finish))))->format("d.m.Y H:i");
+        }
+
+        $order->date_deadline = (new DateTime(date("Y-m-d H:i:s", strtotime($order->date_deadline))))->format("d.m.Y H:i");
+
         return $this->render('view', [
             'model'    => $order,
-            'category' => Category::find($order->category_id)
+            'user'     => User::find()->where(['id' => $order->user_sender])->one(),
+            'manager'  => User::find()->where(['id' => $order->user_answer])->one(),
+            'priority' => Priority::find()->where(['id' => $order->priority_id])->one(),
+            'status'   => Status::find()->where(['id' => $order->status_id])->one(),
+            'category' => Category::find()->where(['id' => $order->category_id])->one()
         ]);
     }
 
@@ -95,20 +113,60 @@ class OrderController extends Controller
     {
         if (Yii::$app->user->isGuest) {
             throw new ForbiddenHttpException("Доступ запрещен для неавторизованных пользователей");
-        } else if (
-            Group::find()->where(['code' => 'user'])->one()->id != Yii::$app->user->identity->group_id
-        ) {
-            throw new ForbiddenHttpException("Доступ запрещен. Заявки могут создавать только пользователи");
+            return;
+        }
+
+        $allowGroups = ['user', 'admin'];
+        $groups = Group::find()
+            ->where(['code' => ['user', 'manager', 'admin']])
+            ->select(['id', 'code'])
+            ->all();
+        $allowGroupsArray = [];
+        $userGroupsArray  = [];
+
+        foreach ($groups as $group) {
+            if (in_array($group->code, $allowGroups)) {
+                $allowGroupsArray[] = $group->id;
+            }
+
+            $userGroupsArray[$group->id] = $group->code;
+        }   
+
+        if (!in_array(Yii::$app->user->identity->group_id, $allowGroupsArray)) {
+            throw new ForbiddenHttpException("Доступ запрещен. Заявки могут создавать только пользователи и администраторы");
         } else {
             $model = new Order();
 
             if ($model->load(Yii::$app->request->post()) && $model->save()) {
                 return $this->redirect(['view', 'id' => $model->id]);
             } else {
+
+                $role = Group::find()->where(['id' => Yii::$app->user->identity->group_id])->one()->code;
+
+                $userSenders = [];
+                $userAnswers = [];
+                $users = User::find()
+                    ->where(['group_id' => array_keys($userGroupsArray)])
+                    ->select(['name', 'second_name', 'last_name', 'id', 'group_id', 'login'])
+                    ->all();
+
+                foreach ($users as $user) {
+                    if (in_array($userGroupsArray[$user->group_id], ['user', 'admin'])) {
+                        $userSenders[] = $user;
+                    }
+                    if (in_array($userGroupsArray[$user->group_id], ['manager', 'admin'])) {
+                        $userAnswers[] = $user;
+                    }
+                }
+
                 return $this->render('create', [
-                    'model' => $model,
-                    'category' => Category::find()->all(),
-                    'priority' => Priority::find()->all()
+                    'model'         => $model,
+                    'categories'    => Category::find()->all(),
+                    'priorities'    => Priority::find()->all(),
+                    'statuses'      => Status::find()->all(),
+                    'userSenders'   => $userSenders,
+                    'userAnswers'   => $userAnswers,
+                    'role'          => $role
                 ]);
             }
         }
@@ -134,7 +192,7 @@ class OrderController extends Controller
             &&
             Group::find()->where(['code' => 'user'])->one()->id == Yii::$app->user->identity->group_id
         ) {
-            throw new ForbiddenHttpException("Доступ запрещен. Вы не можете редактировать чужую заявку");
+            throw new ForbiddenHttpException("Доступ запрещен. Вы не можете редактировать заявку другого пользователя");
             return;
         } else if (
             !empty($model->user_answer)
@@ -143,7 +201,7 @@ class OrderController extends Controller
             &&
             Group::find()->where(['code' => 'manager'])->one()->id == Yii::$app->user->identity->group_id
         ) {
-            throw new ForbiddenHttpException("Доступ запрещен. Вы не можете редактировать принятую другим сотрудником заявку");
+            throw new ForbiddenHttpException("Доступ запрещен. Вы не можете редактировать принятую другим специалистом заявку");
             return;
         } else if (
             $model->user_sender == Yii::$app->user->identity->id
@@ -152,22 +210,67 @@ class OrderController extends Controller
             &&
             !empty($model->user_answer)
         ) {
-            throw new ForbiddenHttpException("Редактирование заявки запрещено. Заявка уже принята сотрудником технической поддержки");
+            throw new ForbiddenHttpException("Редактирование заявки запрещено. Заявка уже принята специалистом");
             return;
         }
 
         if ($model->load(Yii::$app->request->post()) && $model->save()) {
             return $this->redirect(['view', 'id' => $model->id]);
         } else {
-            return $this->render('update', [
-                'model' => $model,
-                'category' => Category::find($model->category_id)->one(),
-                'priority' => Priority::find($model->priority_id)->one(),
-                'status' => Status::find()->all(),
-                'user' => User::find($model->user_sender)
-                            ->select(['id', 'login', 'name', 'last_name'])
-                            ->one(),
 
+            $role = Group::find()->where(['id' => Yii::$app->user->identity->group_id])->one()->code;
+
+            $groups = Group::find()
+                ->where(['code' => ['user', 'manager', 'admin']])
+                ->select(['id', 'code'])
+                ->all();
+            $userGroupsArray  = [];
+
+            foreach ($groups as $group) {
+                $userGroupsArray[$group->id] = $group->code;
+            } 
+
+            $userSenders = [];
+            $userAnswers = [];
+            $users = User::find()
+                ->where(['group_id' => array_keys($userGroupsArray)])
+                ->select(['name', 'second_name', 'last_name', 'id', 'group_id', 'login'])
+                ->all();
+
+            foreach ($users as $user) {
+                if (in_array($userGroupsArray[$user->group_id], ['user', 'admin'])) {
+                    $userSenders[] = $user;
+                }
+                if (in_array($userGroupsArray[$user->group_id], ['manager', 'admin'])) {
+                    $userAnswers[] = $user;
+                }
+            }
+
+            $model->date_deadline = empty($model->date_deadline)
+                                    ?
+                                    null
+                                    :
+                                    (new DateTime(date("Y-m-d H:i:s", strtotime($model->date_deadline))))->format("d.m.Y H:i");
+
+            return $this->render('update', [
+                'model'      => $model,
+                'categories' => Category::find()->all(),
+                'priorities' => Priority::find()->all(),
+                'statuses'   => Status::find()->all(),
+                'category'   => Category::find()->where(['id' => $model->category_id])->one(),
+                'priority'   => Priority::find()->where(['id' => $model->priority_id])->one(),
+                'status'     => Status::find()->all(),
+                'userSenders' => $userSenders,
+                'userAnswers' => $userAnswers,
+                'userSender' => User::find()
+                                ->where(['id' => $model->user_sender])
+                                ->select(['id', 'login', 'name', 'last_name', 'second_name'])
+                                ->one(),
+                'userAnswer' => User::find()
+                                ->where(['id' => $model->user_answer])
+                                ->select(['id', 'login', 'name', 'last_name', 'second_name'])
+                                ->one(),
+                'role'       => $role
             ]);
         }
     }

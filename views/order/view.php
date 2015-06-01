@@ -2,6 +2,7 @@
 
 use yii\helpers\Html;
 use yii\widgets\DetailView;
+use app\models\Group;
 
 /* @var $this yii\web\View */
 /* @var $model app\models\Order */
@@ -25,30 +26,105 @@ $this->params['breadcrumbs'][] = $this->title;
         ]) ?>
     </p>
 
-    <?= DetailView::widget([
-        'model' => $model,
-        'attributes' => [
+    <?
+        $isUser = (Yii::$app->user->identity->group_id == Group::find()->where(['code' => 'user'])->one()->id);
+        $attributes = [
             'id',
-            'user_sender',
-            'user_answer',
-            'priority_id',
-            'date_create',
-            'date_finish',
+            [
+                'attribute' => 'user_sender',
+                'format' => 'raw',
+                'value' => Html::a(
+                    $user->getFio(),
+                    Yii::$app->urlManager->createUrl([
+                        '/user/view',
+                        'id' => $user->id
+                    ])
+                )
+            ]
+        ];
+
+        if (!empty($manager)) {
+            $attributes[] = [
+                'attribute' => 'user_answer',
+                'format' => 'raw',
+                'value' => $isUser ? $manager->getFio() : Html::a(
+                    $manager->getFio(),
+                    Yii::$app->urlManager->createUrl([
+                        '/user/view',
+                        'id' => $manager->id
+                    ])
+                )
+            ];
+        }
+
+        $attributes = array_merge($attributes, [
+            [
+                'attribute' => 'priority_id',
+                'format' => 'raw',
+                'value' => $priority->name
+            ],
+            'date_create'
+        ]);
+
+        if (!empty($model->date_finish)) {
+            $attributes[] = 'date_finish';
+        }
+
+        $attributes = array_merge($attributes, [
             'date_update',
-            'date_deadline',
-            'date_start',
-            'status_id',
+            'date_deadline'
+        ]);
+
+        if (!empty($model->date_start)) {
+            $attributes[] = 'date_start';
+        }
+
+        $attributes = array_merge($attributes, [
+            [
+                'attribute' => 'status_id',
+                'format' => 'raw',
+                'value' => $status->name
+            ],
             'name',
             'description:ntext',
-            'category_id',
-            'model',
-            'serial_number',
+            [
+                'attribute' => 'category_id',
+                'format' => 'raw',
+                'value' => $category->name
+            ]
+        ]);
+
+        if (!empty($model->model)) {
+            $attributes[] = 'model';
+        }
+
+        if (!empty($model->serial_number)) {
+            $attributes[] = 'serial_number';
+        }
+
+        $attributes = array_merge($attributes, [
             'sender_location',
             'sender_name',
-            'sender_position',
-            'time_hours',
-            'complexity',
-        ],
+            'sender_position'
+        ]);
+
+        if (
+            !$isUser
+            &&
+            !empty($model->time_hours)
+            &&
+            !empty($model->complexity)
+        ) {
+            $attributes = array_merge($attributes, [
+                'time_hours',
+                'complexity'
+            ]);
+        }
+    ?>
+
+    <?= DetailView::widget([
+        'model'      => $model,
+        'attributes' => $attributes
     ]) ?>
 
 </div>

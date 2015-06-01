@@ -8,7 +8,14 @@ $config = [
     'bootstrap' => ['log'],
     'language' => 'ru-RU',
     'components' => [
-        /*'authManager' => [
+        /*'formatter' => [
+           'class' => 'yii\i18n\Formatter',
+           'timeZone' => 'Europe/Moscow',
+           'dateFormat' => 'php:d.m.Y',
+           'datetimeFormat' => 'php:d.m.Y H:i',
+           'timeFormat' => 'php:H:i'
+        ],
+        'authManager' => [
             'class' => 'yii\rbac\PhpManager',
             'defaultRoles' => ['user','moder','admin'], //здесь прописываем роли
             //зададим куда будут сохраняться наши файлы конфигураций RBAC

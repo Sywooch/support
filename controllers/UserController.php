@@ -61,8 +61,34 @@ class UserController extends Controller
         if (Yii::$app->user->isGuest) {
             throw new ForbiddenHttpException("Доступ запрещен");
         } else if (
-            $id != Yii::$app->user->identity->id &&
-            Group::find()->where(['code' => 'admin'])->one()->id != Yii::$app->user->identity->group_id
+            $id != Yii::$app->user->identity->id
+            &&
+            (
+                Group::find()->where(['code' => 'user'])->one()->id == Yii::$app->user->identity->group_id
+                ||
+                Group::find()->where(['code' => 'manager'])->one()->id == Yii::$app->user->identity->group_id
+                &&
+                (
+                    User::findIdentity($id)->group_id == Group::find()->where(['code' => 'manager'])->one()->id
+                    ||
+                    User::findIdentity($id)->group_id == Group::find()->where(['code' => 'admin'])->one()->id
+                )
+            )
+            /*$id != Yii::$app->user->identity->id
+            &&
+            Group::find()->where(['code' => 'user'])->one()->id == Yii::$app->user->identity->group_id
+            ||
+            $id != Yii::$app->user->identity->id
+            &&
+            Group::find()->where(['code' => 'manager'])->one()->id == Yii::$app->user->identity->group_id
+            &&
+            User::findIdentity($id)->group_id == Group::find()->where(['code' => 'manager'])->one()->id
+            ||
+            $id != Yii::$app->user->identity->id
+            &&
+            Group::find()->where(['code' => 'manager'])->one()->id == Yii::$app->user->identity->group_id
+            &&
+            User::findIdentity($id)->group_id == Group::find()->where(['code' => 'admin'])->one()->id*/
         ) {
             throw new ForbiddenHttpException("Доступ запрещен");
         } else {

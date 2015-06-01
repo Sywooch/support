@@ -15,12 +15,19 @@ $this->params['breadcrumbs'][] = 'Изменение';
     <h1><?= Html::encode($this->title) ?></h1>
 
     <?= $this->render('_form', [
-        'model' => $model,
-        'category' => $category,
-        'priority' => $priority,
-        'status' => $status,
-        'user' => $user,
-        'create' => false
+        'model' 		=> $model,
+        'category' 		=> $category,
+        'priority' 		=> $priority,
+        'status' 		=> $status,
+        'categories' 	=> $categories,
+        'priorities' 	=> $priorities,
+        'statuses' 		=> $statuses,
+        'userSenders' 	=> $userSenders,
+        'userAnswers' 	=> $userAnswers,
+        'userSender' 	=> $userSender,
+        'userAnswer' 	=> $userAnswer,
+        'role' 			=> $role,
+        'create' 		=> false
     ]) ?>
 
 </div>

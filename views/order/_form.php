@@ -18,36 +18,50 @@ use kartik\datetime\DateTimePicker;
 
     <?=$form->errorSummary($model)?>
 
-    <?if ($create):?>
+    <?if ($role == 'user'):?>
         <?= $form->field($model, 'name')->textInput(['maxlength' => 255]) ?>
-        <?= $form->field($model, 'category_id')->DropDownList(ArrayHelper::map($category,'id','name')) ?>
+        <?= $form->field($model, 'category_id')->DropDownList(ArrayHelper::map($categories,'id','name')) ?>
+        
+        <div <?if($model->category_id != 1):?>style="display:none"<?endif?> class="order-detail">
+            <?= $form->field($model, 'model')->textInput()->hint('Например, Samsung U28D590D') ?>
+            <?= $form->field($model, 'serial_number')->textInput()->hint('Например, ADCD12356789') ?>
+        </div>
+
         <?= $form->field($model, 'description')->textarea(['rows' => 6]) ?>
         <?= $form->field($model, 'sender_location')->textInput() ?>
         <?= $form->field($model, 'sender_name')->textInput() ?>
         <?= $form->field($model, 'sender_position')->textInput() ?>
-        <?= $form->field($model, 'priority_id')->DropDownList(ArrayHelper::map($priority,'id','name')) ?>
+        <?= $form->field($model, 'priority_id')->DropDownList(ArrayHelper::map($priorities,'id','name')) ?>
         <?= $form->field($model, 'date_deadline')->widget(DateTimePicker::classname(), [
-            'type' => DateTimePicker::TYPE_INPUT,
+            'type' => DateTimePicker::TYPE_COMPONENT_PREPEND,
+            'removeButton' => false,
+            'pickerButton' => ['icon' => 'time'],
             'pluginOptions' => [
                 'autoclose' => true,
                 'format' => 'dd.mm.yyyy hh:ii',
-                'startDate' => (new DateTime())->add(new DateInterval('P1D'))->format('Y-m-d H:i')
+                'startDate' => (new DateTime())->add(new DateInterval('P1D'))->format('d.m.Y H:i')
             ]
         ]) ?>
-    <?else:?>
-        <?
-        $userName = trim($user->name.' '.$user->last_name);
-        $userName = empty($userName) ? $user->login : $userName;
-        $userUrl = Yii::$app->urlManager->createUrl([
-            'user/view',
-            'id' => $user->id
-        ]);
+    <?endif;?>
 
+    <?if ($role == 'manager'):?>
+        <?
         $attributes = [
             [
                 'attribute' => 'user_sender',
                 'format' => 'raw',
-                'value' => Html::a($userName, $userUrl)
+                'value' => Html::a($userSender->getFio(), Yii::$app->urlManager->createUrl([
+                    'user/view',
+                    'id' => $userSender->id
+                ]))
+            ],
+            [
+                'attribute' => 'user_answer',
+                'format' => 'raw',
+                'value' => Html::a($userAnswer->getFio(), Yii::$app->urlManager->createUrl([
+                    'user/view',
+                    'id' => $userAnswer->id
+                ]))
             ],
             [
                 'attribute' => 'priority_id',
@@ -73,8 +87,11 @@ use kartik\datetime\DateTimePicker;
             ],
         ];
 
-        if ($category->id == 1) {
+        if (!empty($model->model)) {
             $attributes[] = 'model';
+        }
+
+        if (!empty($model->serial_number)) {
             $attributes[] = 'serial_number';
         }
 
@@ -88,18 +105,49 @@ use kartik\datetime\DateTimePicker;
             'model' => $model,
             'attributes' => $attributes
         ]) ?>
-        <?/*= $form->field($model, 'date_finish')->widget(DateTimePicker::classname(), [
-            'type' => DateTimePicker::TYPE_INPUT,
-            'pluginOptions' => [
-                'autoclose' => true,
-                'format' => 'dd.mm.yyyy hh:ii',
-                'startDate' => (new DateTime())->add(new DateInterval('PT2H'))->format('Y-m-d H:i')
-            ]
-        ])->hint('Планируемая дата завершения заявки')*/ ?>
         <?= $form->field($model, 'time_hours')->textInput(['maxlength' => 4])->hint('Время в часах, отведенное на выполнение заявки специалистом') ?>
         <?= $form->field($model, 'complexity')->textInput(['maxlength' => 2])->hint('Количество баллов за выполнения заявки. Целое число. Минимум - 1, максимум - 10') ?>
         <?= $form->field($model, 'status_id')->DropDownList(ArrayHelper::map($status,'id','name')) ?>
-    <?endif?>
+    <?endif;?>
+
+    <?if ($role == 'admin'):?>
+        <?= $form->field($model, 'name')->textInput(['maxlength' => 255]) ?>
+        <?= $form->field($model, 'category_id')->DropDownList(ArrayHelper::map($categories,'id','name')) ?>
+        
+        <div <?if($model->category_id != 1):?>style="display:none"<?endif?> class="order-detail">
+            <?= $form->field($model, 'model')->textInput()->hint('Например, Samsung U28D590D') ?>
+            <?= $form->field($model, 'serial_number')->textInput()->hint('Например, ADCD12356789') ?>
+        </div>
+
+        <?= $form->field($model, 'description')->textarea(['rows' => 6]) ?>
+        <?= $form->field($model, 'user_sender')->DropDownList(ArrayHelper::map($userSenders,'id', function($user) {
+            $fio = trim($user->name.' '.$user->second_name.' '.$user->last_name);
+            $fio = empty($fio) ? $user->login : $fio;
+            return ('['.$user->id.'] '.$fio);
+        })) ?>
+        <?= $form->field($model, 'user_answer')->DropDownList(ArrayHelper::map($userAnswers,'id', function($user) {
+            $fio = trim($user->name.' '.$user->second_name.' '.$user->last_name);
+            $fio = empty($fio) ? $user->login : $fio;
+            return ('['.$user->id.'] '.$fio);
+        })) ?>
+        <?= $form->field($model, 'sender_location')->textInput() ?>
+        <?= $form->field($model, 'sender_name')->textInput() ?>
+        <?= $form->field($model, 'sender_position')->textInput() ?>
+        <?= $form->field($model, 'priority_id')->DropDownList(ArrayHelper::map($priorities,'id','name')) ?>
+        <?= $form->field($model, 'date_deadline')->widget(DateTimePicker::classname(), [
+            'type' => DateTimePicker::TYPE_COMPONENT_PREPEND,
+            'removeButton' => false,
+            'pickerButton' => ['icon' => 'time'],
+            'pluginOptions' => [
+                'autoclose' => true,
+                'format' => 'dd.mm.yyyy hh:ii',
+                'startDate' => (new DateTime())->add(new DateInterval('P1D'))->format('d.m.Y H:i')
+            ]
+        ]) ?>
+        <?= $form->field($model, 'time_hours')->textInput(['maxlength' => 4])->hint('Время в часах, отведенное на выполнение заявки специалистом') ?>
+        <?= $form->field($model, 'complexity')->textInput(['maxlength' => 2])->hint('Количество баллов за выполнения заявки. Целое число. Минимум - 1, максимум - 10') ?>
+        <?= $form->field($model, 'status_id')->DropDownList(ArrayHelper::map($statuses,'id','name')) ?>
+    <?endif;?>
 
     <div class="form-group">
         <?= Html::submitButton($model->isNewRecord ? 'Создать' : 'Изменить', ['class' => $model->isNewRecord ? 'btn btn-success' : 'btn btn-primary']) ?>
@@ -107,4 +155,20 @@ use kartik\datetime\DateTimePicker;
 
     <?php ActiveForm::end(); ?>
 
+    <?
+        $this->registerJs(
+            '$("document").ready(function() {
+                $("#order-category_id").change(function() {
+                    var value = $(this).val();
+                    if (value == 1) { // small huck
+                        $(".order-detail").show();
+                    } else {
+                        $(".order-detail").hide();
+                        $("#order-model").val("");
+                        $("#order-serial_number").val("");
+                    }
+                });
+            });'
+        );
+    ?>
 </div>

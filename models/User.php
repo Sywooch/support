@@ -79,8 +79,8 @@ class User extends ActiveRecord implements IdentityInterface
             'password_reset_token' => 'Контрольная строка',
             'auth_key' => 'Ключ авторизации',
             'name' => 'Имя',
-            'second_name' => 'Фамилия',
-            'last_name' => 'Отчество',
+            'second_name' => 'Отчество',
+            'last_name' => 'Фамилия',
             'position' => 'Должность',
             'workplace' => 'Рабочее место',
             'group_id' => 'Группа',
@@ -142,6 +142,12 @@ class User extends ActiveRecord implements IdentityInterface
     public function getId()
     {
         return $this->getPrimaryKey();
+    }
+
+    public function getFio()
+    {
+        $fio = trim($this->name.' '.$this->second_name.' '.$this->last_name);
+        return (empty($fio) ? $this->login : $fio);
     }
 
     public function getGroup()
