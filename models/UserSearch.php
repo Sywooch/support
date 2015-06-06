@@ -19,7 +19,7 @@ class UserSearch extends User
     {
         return [
             [['id', 'group_id'], 'integer'],
-            [['login', 'password', 'password_reset_token', 'auth_key', 'name', 'second_name', 'last_name', 'position', 'workplace'], 'safe'],
+            [['login', 'password', 'access_token', 'auth_key', 'name', 'second_name', 'last_name', 'position', 'workplace'], 'safe'],
         ];
     }
 
@@ -62,7 +62,7 @@ class UserSearch extends User
 
         $query->andFilterWhere(['like', 'login', $this->login])
             ->andFilterWhere(['like', 'password', $this->password])
-            ->andFilterWhere(['like', 'password_reset_token', $this->password_reset_token])
+            ->andFilterWhere(['like', 'access_token', $this->access_token])
             ->andFilterWhere(['like', 'auth_key', $this->auth_key])
             ->andFilterWhere(['like', 'name', $this->name])
             ->andFilterWhere(['like', 'second_name', $this->second_name])

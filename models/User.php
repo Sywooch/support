@@ -35,19 +35,6 @@ class User extends ActiveRecord implements IdentityInterface
         return 'tbl_user';
     }
 
-    /*public function behaviors()
-    {
-        return [
-            'access' => [
-                'class' => \yii\filters\AccessControl::className(),
-                'only' => ['view'],
-                'rules' => [
-
-                ]
-            ]
-        ];
-    }*/
-
     /**
      * @inheritdoc
      */
@@ -61,7 +48,7 @@ class User extends ActiveRecord implements IdentityInterface
             [['login'], 'string', 'max' => 100],
             [['login'], 'unique'],
             [['login'], 'email'],
-            [['password', 'password_reset_token', 'position', 'workplace'], 'string', 'max' => 255],
+            [['password', 'access_token', 'position', 'workplace'], 'string', 'max' => 255],
             [['auth_key'], 'string', 'max' => 32],
             [['name', 'second_name', 'last_name'], 'string', 'max' => 50]
         ];
@@ -113,27 +100,6 @@ class User extends ActiveRecord implements IdentityInterface
     public static function findByLogin($login)
     {
         return static::findOne(['login' => $login]);
-    }
-
-    /**
-     * Finds user by password reset token
-     *
-     * @param  string $token password reset token
-     * @return static|null
-     */
-    public static function findByPasswordResetToken($token)
-    {
-        $expire = \Yii::$app->params['user.passwordResetTokenExpire'];
-        $parts = explode('_', $token);
-        $timestamp = (int) end($parts);
-        if ($timestamp + $expire < time()) {
-            // token expired
-            return null;
-        }
-
-        return static::findOne([
-            'password_reset_token' => $token
-        ]);
     }
 
     /**
@@ -208,20 +174,9 @@ class User extends ActiveRecord implements IdentityInterface
         $this->auth_key = Yii::$app->security->generateRandomString();
     }
 
-    /**
-     * Generates new password reset token
-     */
-    public function generatePasswordResetToken()
+    public function generateAccessToken()
     {
-        $this->password_reset_token = Yii::$app->security->generateRandomString() . '_' . time();
-    }
-
-    /**
-     * Removes password reset token
-     */
-    public function removePasswordResetToken()
-    {
-        $this->password_reset_token = null;
+        $this->access_token = Yii::$app->security->generateRandomString();
     }
 
     public function beforeSave($insert)
@@ -231,12 +186,23 @@ class User extends ActiveRecord implements IdentityInterface
             if ($insert) {
                 $this->setPassword($this->password);
                 $this->generateAuthKey();
+                $this->generateAccessToken();
             } else if (empty($this->password)) {
                 $user = User::findIdentity($this->id);
                 $this->password = $user->password;
+
+                if ($this->login == $user->login) {
+                  $this->access_token = $user->access_token;
+                  $this->auth_key = $user->auth_key;
+                } else {
+                  $this->generateAuthKey();
+                  $this->generateAccessToken();
+                }
+                
             } else {
                 $this->setPassword($this->password);
                 $this->generateAuthKey();
+                $this->generateAccessToken();
             }
 
             return true;
@@ -244,19 +210,4 @@ class User extends ActiveRecord implements IdentityInterface
             return false;
         }
     }
-
-    /*public function beforeDelete()
-    {
-        if (parent::beforeDelete()) {
-            
-            if (empty($user->getId())) {
-                $this->addError("user_sender", "Пользователь не авторизован");
-                return false;
-            }
-
-            return true;
-        } else {
-            return false;
-        }
-    }*/
 }

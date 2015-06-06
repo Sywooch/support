@@ -29,6 +29,7 @@ $config = [
             'enableStrictParsing' => true,
             'showScriptName' => false,
             'rules' => [
+                // site
                 '/' => 'site/index',
                 '/about' => 'site/about',
                 '/contact' => 'site/contact',
@@ -36,23 +37,25 @@ $config = [
                 '/login' => 'site/login',
                 '/logout' => 'site/logout',
 
+                // orders
                 'orders' => 'order/index',
                 'order/<id:\d+>' => 'order/view',
                 'order/create' => 'order/create',
                 'order/update/<id:\d+>' => 'order/update',
                 'order/delete/<id:\d+>' => 'order/delete',
 
+                // users
                 'users' => 'user/index',
                 'user/<id:\d+>' => 'user/view',
                 'user/create' => 'user/create',
                 'user/update/<id:\d+>' => 'user/update',
                 'user/delete/<id:\d+>' => 'user/delete',
 
+                // rest api
                 '/api/orders/get'   => 'api/list',
                 '/api/order/update' => 'api/update',
-                '/api/order/delete' => 'api/delete'
-
-                //['class' => 'yii\rest\UrlRule', 'controller' => 'api']
+                '/api/order/delete' => 'api/delete',
+                '/api/user/auth'    => 'api/auth'
             ]
         ],
         'request' => [

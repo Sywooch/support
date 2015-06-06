@@ -11,6 +11,7 @@ use app\models\Priority;
 use app\models\Status;
 use app\models\Category;
 use app\models\User;
+use yii\filters\auth\HttpBasicAuth;
 
 class ApiController extends ActiveController
 {
@@ -28,24 +29,55 @@ class ApiController extends ActiveController
         return [];
     }
 
-    /*public function behaviors()
+    protected function verbs()
+    {
+    	return [
+    		'auth'   => ['POST'],
+    		'list'   => ['GET'],
+    		'update' => ['PUT', 'PATCH'],
+    		'delete' => ['DELETE']
+    	];
+    }
+
+    public function behaviors()
 	{
-	    return [            
-	        'verbs' => [
-	            'class' => VerbFilter::className(),
-	            'actions' => [
-	                'list'   => ['post'],
-	                'update' => ['post'],
-	                'delete' => ['post']
-	            ],
-	        ],
+	    $behaviors = parent::behaviors();
+	    $behaviors['authenticator'] = [
+	        'class' => HttpBasicAuth::className(),
+	        'except' => ['auth']
 	    ];
-	}*/
+	    return $behaviors;
+	}
+
+	// POST
+	public function actionAuth($login, $password)
+	{
+		$result = ["result" => false];
+
+		if (empty($login)) {
+			$result["error"] = "Пустой логин";
+		} else if (empty($password)) {
+			$result["error"] = "Пустой пароль";
+		} else {
+			$user = User::find()->where(['login' => $login])->one();
+
+			if (empty($user)) {
+				$result["error"] = "Пользователь $login не найден";
+			} else if (!$user->validatePassword($password)) {
+				$result["error"] = "Неверный пароль для логина $login";
+			} else {
+				$result["result"] = true;
+				$result["token"] = $user->access_token;
+			}
+		}
+
+		return $result;
+	}
 
 	// GET
-    public function actionList($login, $password)
+    public function actionList()
 	{
-		$result = $this->getPermissionResult($login, $password, ['admin', 'manager']);
+		$result = $this->getPermissionResult(['admin', 'manager']);
 
 		if (!$result) {
 			return [
@@ -64,7 +96,7 @@ class ApiController extends ActiveController
 			];
 		}
 
-		$user = User::find()->where(['login' => $login])->one();
+		$user = Yii::$app->user->identity;
 
 		$query = new Query;
 		$query->select([
@@ -102,27 +134,13 @@ class ApiController extends ActiveController
 		$command 		= $query->createCommand();
 		$data 			= $command->queryAll();
 
-		/*
-		$result['data'] = Order::find()
-			->joinWith('priority')
-			->select([
-				//Order::tableName().'.id as order_id',
-				Order::tableName().'.name AS order_name',
-				Priority::tableName().'.name AS priority_name',
-				//Priority::tableName().'.code',
-			])
-			->where(['status_id' => $newStatus->id, 'user_answer' => null])
-			->orWhere(['user_answer' => $user->id])
-			->all();
-		*/
-
 		return [
 			'result' => true,
 			'data'   => $data
 		];
 	}
 
-	// PUT
+	// PUT | PATCH
 	public function actionUpdate()
 	{
 		$requestBody = Yii::$app->request->getRawBody();
@@ -138,10 +156,8 @@ class ApiController extends ActiveController
 
 		$id = intval($data['id']);
 		$fields = $data["fields"];
-		$login = $data['login'];
-		$password = $data['password'];
 
-		$result = $this->getPermissionResult($login, $password, ['admin', 'manager']);
+		$result = $this->getPermissionResult(['admin', 'manager']);
 
 		if (!$result) {
 			return [
@@ -160,7 +176,7 @@ class ApiController extends ActiveController
 			];
 		}
 
-		$user = User::find()->where(['login' => $login])->one();
+		$user = Yii::$app->user->identity;
 
 		if ($order->user_answer > 0 && $order->user_answer != $user->id) {
 			$manager = User::find()->where(['id' => $order->user_answer])->one();
@@ -211,9 +227,9 @@ class ApiController extends ActiveController
 	}
 
 	// DELETE
-	public function actionDelete($id, $login, $password)
+	public function actionDelete($id)
 	{
-		$result = $this->getPermissionResult($login, $password, ['admin']);
+		$result = $this->getPermissionResult(['admin']);
 
 		if (!$result) {
 			return [
@@ -243,19 +259,10 @@ class ApiController extends ActiveController
 		return ["result" => true];
 	}
 
-	private function getPermissionResult($login, $password, $groupArray)
+	private function getPermissionResult($groupArray)
 	{
-		$user = User::findByLogin($login);
-
-		if (empty($user)) {
-			$this->error = "Пользователь $login не найден";
-			return false;
-		}
-
-		if (!$user->validatePassword($password)) {
-			$this->error = "Неверный пароль для логина $login";
-			return false;
-		}
+		$user = Yii::$app->user->identity;
+		$login = $user->login;
 
 		$userGroup = $user->getGroup();
 
