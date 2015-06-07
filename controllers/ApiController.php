@@ -68,6 +68,7 @@ class ApiController extends ActiveController
 			} else {
 				$result["result"] = true;
 				$result["token"] = $user->access_token;
+				$result["group"] = $user->getGroup()->code;
 			}
 		}
 
