@@ -54,15 +54,21 @@ use kartik\datetime\DateTimePicker;
                     'user/view',
                     'id' => $userSender->id
                 ]))
-            ],
-            [
+            ]
+        ];
+
+        if (!empty($userAnswer)) {
+            $attributes[] = [
                 'attribute' => 'user_answer',
                 'format' => 'raw',
                 'value' => Html::a($userAnswer->getFio(), Yii::$app->urlManager->createUrl([
                     'user/view',
                     'id' => $userAnswer->id
                 ]))
-            ],
+            ];
+        }
+
+        $attributes = array_merge($attributes, [
             [
                 'attribute' => 'priority_id',
                 'format' => 'raw',
@@ -84,8 +90,8 @@ use kartik\datetime\DateTimePicker;
                 'attribute' => 'category_id',
                 'format' => 'raw',
                 'value' => $category->name
-            ],
-        ];
+            ]
+        ]);
 
         if (!empty($model->model)) {
             $attributes[] = 'model';

@@ -55,10 +55,24 @@ class OrderSearch extends Order
             return $dataProvider;
         }
 
+        $user = Yii::$app->user->identity;
+        $userGroup = $user->getGroup();
+
+        if ($userGroup->code == 'user') {
+            $userSender = $user->id;
+            $userAnswer = $this->user_answer;
+        } else if ($userGroup->code == 'manager') {
+            $userSender = $this->user_sender;
+            $userAnswer = $user->id;
+        } else if ($userGroup->code == 'admin') {
+            $userSender = $this->user_sender;
+            $userAnswer = $this->user_answer;
+        }
+
         $query->andFilterWhere([
             'id' => $this->id,
-            'user_sender' => $this->user_sender,
-            'user_answer' => $this->user_answer,
+            'user_sender' => $userSender,
+            'user_answer' => $userAnswer,
             'priority_id' => $this->priority_id,
             'date_create' => $this->date_create,
             'date_finish' => $this->date_finish,
@@ -71,8 +85,12 @@ class OrderSearch extends Order
             'complexity' => $this->complexity,
         ]);
 
+        if ($userGroup->code == 'manager') {
+            $query->orWhere(['user_answer' => null]);
+        }
+
         $query->andFilterWhere(['like', 'name', $this->name])
-            ->andFilterWhere(['like', 'description', $this->description]);
+              ->andFilterWhere(['like', 'description', $this->description]);
 
         return $dataProvider;
     }
