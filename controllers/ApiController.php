@@ -98,6 +98,7 @@ class ApiController extends ActiveController
 		}
 
 		$user = Yii::$app->user->identity;
+		$userGroup = $user->getGroup();
 
 		$query = new Query;
 		$query->select([
@@ -128,10 +129,14 @@ class ApiController extends ActiveController
 				->leftJoin(
 						Category::tableName(),
 						Category::tableName().'.id = '.Order::tableName().'.category_id'
-				)
-				->where(['status_id' => $newStatus->id, 'user_answer' => null])
-				->orWhere(['user_answer' => $user->id]);
-				
+				);
+
+		if ($userGroup->code == 'manager') {
+			$query = $query
+						->where(['status_id' => $newStatus->id, 'user_answer' => null])
+						->orWhere(['user_answer' => $user->id]);
+		}
+
 		$command 		= $query->createCommand();
 		$data 			= $command->queryAll();
 
