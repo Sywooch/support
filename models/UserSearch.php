@@ -53,7 +53,7 @@ class UserSearch extends User
 
         $dataProvider->sort->attributes['group'] = [
             'asc' => [Group::tableName().'.name' => SORT_ASC],
-            'desc' => [group::tableName().'.name' => SORT_DESC],
+            'desc' => [Group::tableName().'.name' => SORT_DESC],
         ];
 
         $this->load($params);
@@ -66,7 +66,6 @@ class UserSearch extends User
 
         $query->andFilterWhere([
             'id' => $this->id,
-            //'group_id' => $this->group_id,
         ]);
 
         $query->andFilterWhere(['like', 'login', $this->login])

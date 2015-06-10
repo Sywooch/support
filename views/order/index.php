@@ -2,6 +2,9 @@
 
 use yii\helpers\Html;
 use yii\grid\GridView;
+use app\models\Category;
+use app\models\Priority;
+use app\models\Status;
 
 /* @var $this yii\web\View */
 /* @var $searchModel app\models\OrderSearch */
@@ -13,7 +16,7 @@ $this->params['breadcrumbs'][] = $this->title;
 <div class="order-index">
 
     <h1><?= Html::encode($this->title) ?></h1>
-    <?php // echo $this->render('_search', ['model' => $searchModel]); ?>
+    <?//echo $this->render('_search', ['model' => $searchModel]); ?>
 
     <p>
         <?= Html::a('Добавить заявку', ['create'], ['class' => 'btn btn-success']) ?>
@@ -27,23 +30,44 @@ $this->params['breadcrumbs'][] = $this->title;
 
             'id',
             //'user_sender',
-            'user_answer',
-            'priority_id',
-            'date_create',
-            'date_finish',
+            [
+                'attribute' => 'userAnswer',
+                'value' => 'userAnswer.last_name'
+            ],
+            [
+                'attribute' => 'priority',
+                'value' => 'priority.name'
+            ],
+            [
+                'attribute' => 'date_create',
+                'format' => ['date', 'php:d.m.Y H:i']
+            ],
+            [
+                'attribute' => 'date_finish',
+                'format' => ['date', 'php:d.m.Y H:i']
+            ],
             //'date_update',
-            'date_deadline',
+            [
+                'attribute' => 'date_deadline',
+                'format' => ['date', 'php:d.m.Y H:i']
+            ],
             //'date_start',
-            'status_id',
+            [
+                'attribute' => 'status',
+                'value' => 'status.name'
+            ],
             'name',
             //'description:ntext',
-            'category_id',
+            [
+                'attribute' => 'category',
+                'value' => 'category.name'
+            ],
             //'model',
             //'serial_number',
             //'sender_location',
             //'sender_name',
             //'sender_position',
-            'time_hours:datetime',
+            'time_hours',
             'complexity',
 
             ['class' => 'yii\grid\ActionColumn'],

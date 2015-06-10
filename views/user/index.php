@@ -36,8 +36,6 @@ $this->params['breadcrumbs'][] = $this->title;
                 'attribute' => 'group',
                 'value' => 'group.name'
             ],
-            //'group_id',
-
             ['class' => 'yii\grid\ActionColumn'],
         ],
     ]); ?>

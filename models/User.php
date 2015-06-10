@@ -71,6 +71,7 @@ class User extends ActiveRecord implements IdentityInterface
             'position' => 'Должность',
             'workplace' => 'Рабочее место',
             'group_id' => 'Группа',
+            'group' => 'Группа'
         ];
     }
 
