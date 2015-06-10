@@ -56,7 +56,7 @@ class OrderSearch extends Order
         }
 
         $user = Yii::$app->user->identity;
-        $userGroup = $user->getGroup();
+        $userGroup = $user->getGroup()->one();
 
         if ($userGroup->code == 'user') {
             $userSender = $user->id;

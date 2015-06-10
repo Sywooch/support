@@ -13,7 +13,7 @@ $this->params['breadcrumbs'][] = $this->title;
 <div class="user-index">
 
     <h1><?= Html::encode($this->title) ?></h1>
-    <?php // echo $this->render('_search', ['model' => $searchModel]); ?>
+    <?// echo $this->render('_search', ['model' => $searchModel]); ?>
 
     <p>
         <?= Html::a('Добавить пользователя', ['create'], ['class' => 'btn btn-success']) ?>
@@ -32,7 +32,11 @@ $this->params['breadcrumbs'][] = $this->title;
             'last_name',
             'position',
             'workplace',
-            'group_id',
+            [
+                'attribute' => 'group',
+                'value' => 'group.name'
+            ],
+            //'group_id',
 
             ['class' => 'yii\grid\ActionColumn'],
         ],

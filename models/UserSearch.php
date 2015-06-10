@@ -12,12 +12,15 @@ use app\models\User;
  */
 class UserSearch extends User
 {
+    public $group;
+
     /**
      * @inheritdoc
      */
     public function rules()
     {
         return [
+            [['group'], 'safe'],
             [['id', 'group_id'], 'integer'],
             [['login', 'password', 'access_token', 'auth_key', 'name', 'second_name', 'last_name', 'position', 'workplace'], 'safe'],
         ];
@@ -42,10 +45,16 @@ class UserSearch extends User
     public function search($params)
     {
         $query = User::find();
+        $query->joinWith(['group']);
 
         $dataProvider = new ActiveDataProvider([
             'query' => $query,
         ]);
+
+        $dataProvider->sort->attributes['group'] = [
+            'asc' => [Group::tableName().'.name' => SORT_ASC],
+            'desc' => [group::tableName().'.name' => SORT_DESC],
+        ];
 
         $this->load($params);
 
@@ -57,18 +66,19 @@ class UserSearch extends User
 
         $query->andFilterWhere([
             'id' => $this->id,
-            'group_id' => $this->group_id,
+            //'group_id' => $this->group_id,
         ]);
 
         $query->andFilterWhere(['like', 'login', $this->login])
-            ->andFilterWhere(['like', 'password', $this->password])
-            ->andFilterWhere(['like', 'access_token', $this->access_token])
-            ->andFilterWhere(['like', 'auth_key', $this->auth_key])
-            ->andFilterWhere(['like', 'name', $this->name])
-            ->andFilterWhere(['like', 'second_name', $this->second_name])
-            ->andFilterWhere(['like', 'last_name', $this->last_name])
-            ->andFilterWhere(['like', 'position', $this->position])
-            ->andFilterWhere(['like', 'workplace', $this->workplace]);
+              ->andFilterWhere(['like', 'password', $this->password])
+              ->andFilterWhere(['like', 'access_token', $this->access_token])
+              ->andFilterWhere(['like', 'auth_key', $this->auth_key])
+              ->andFilterWhere(['like', 'name', $this->name])
+              ->andFilterWhere(['like', 'second_name', $this->second_name])
+              ->andFilterWhere(['like', 'last_name', $this->last_name])
+              ->andFilterWhere(['like', 'position', $this->position])
+              ->andFilterWhere(['like', 'workplace', $this->workplace])
+              ->andFilterWhere(['like', Group::tableName().'.name', $this->group]);
 
         return $dataProvider;
     }

@@ -40,7 +40,7 @@ AppAsset::register($this);
             if (Yii::$app->user->isGuest) {
                 $navItems[] = ['label' => 'Обратная связь', 'url' => ['/site/contact']];
             } else {
-                $userGroup = Yii::$app->user->getIdentity()->getGroup();
+                $userGroup = Yii::$app->user->getIdentity()->getGroup()->one();
 
                 if (empty($userGroup)) {    // no group
                     $navItems[] = ['label' => 'Обратная связь', 'url' => ['/site/contact']];

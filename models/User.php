@@ -118,15 +118,7 @@ class User extends ActiveRecord implements IdentityInterface
 
     public function getGroup()
     {
-        if (empty($this->group_id)) {
-            return null;
-        }
-
-        if (empty($this->group)) {
-            $this->group = Group::find()->where(['id' => $this->group_id])->one();
-        }
-
-        return $this->group;
+        return $this->hasOne(Group::className(), ['id' => 'group_id']);
     }
 
     /**

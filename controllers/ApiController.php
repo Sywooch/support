@@ -68,7 +68,8 @@ class ApiController extends ActiveController
 			} else {
 				$result["result"] = true;
 				$result["token"] = $user->access_token;
-				$result["group"] = $user->getGroup()->code;
+				$result["user_id"] = $user->id;
+				$result["group"] = $user->getGroup()->one()->code;
 			}
 		}
 
@@ -98,7 +99,7 @@ class ApiController extends ActiveController
 		}
 
 		$user = Yii::$app->user->identity;
-		$userGroup = $user->getGroup();
+		$userGroup = $user->getGroup()->one();
 
 		$query = new Query;
 		$query->select([
@@ -270,7 +271,7 @@ class ApiController extends ActiveController
 		$user = Yii::$app->user->identity;
 		$login = $user->login;
 
-		$userGroup = $user->getGroup();
+		$userGroup = $user->getGroup()->one();
 
 		if (empty($userGroup)) {
 			$this->error = "У пользователя $login нет прав на заявки. Группа пользователей не определена.";
