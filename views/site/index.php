@@ -7,7 +7,7 @@ $this->title = 'Support App';
     <div class="jumbotron">
         <h1>Добро пожаловать!</h1>
 
-        <p class="lead">Здесь будет главный текст.</p>
+        <p class="lead">Система технической поддержки пользователей</p>
 
         <p><a class="btn btn-lg btn-success" href="<?=Yii::$app->urlManager->createUrl(['site/about'])?>">Познакомиться</a></p>
     </div>
@@ -16,25 +16,25 @@ $this->title = 'Support App';
 
         <div class="row">
             <div class="col-lg-4">
-                <h2>Заголовок 1</h2>
+                <h2>Быстро</h2>
 
-                <p>Текст 1</p>
+                <p>Всегда в онлайне, не нужно скачивать никаких приложений.</p>
 
-                <p><a class="btn btn-default" href="<?=Yii::$app->urlManager->createUrl(['site/about', '#' => 'block1'])?>">Ссылка 1</a></p>
+                <p><a class="btn btn-default" href="<?=Yii::$app->urlManager->createUrl(['site/about', '#' => 'block1'])?>">Подробнее</a></p>
             </div>
             <div class="col-lg-4">
-                <h2>Заголовок 2</h2>
+                <h2>Просто</h2>
 
-                <p>Текст 2</p>
+                <p>Все предельно ясно и понятно. Вы заходите на сайт и оставляете заявку.</p>
 
-                <p><a class="btn btn-default" href="<?=Yii::$app->urlManager->createUrl(['site/about', '#' => 'block2'])?>">Ссылка 2</a></p>
+                <p><a class="btn btn-default" href="<?=Yii::$app->urlManager->createUrl(['site/about', '#' => 'block2'])?>">Подробнее</a></p>
             </div>
             <div class="col-lg-4">
-                <h2>Заголовок 3</h2>
+                <h2>Удобно</h2>
 
-                <p>Текст 3</p>
+                <p>Ничего лишнего. Все под рукой. Удобная панель управления для пользователей.</p>
 
-                <p><a class="btn btn-default" href="<?=Yii::$app->urlManager->createUrl(['site/about', '#' => 'block3'])?>">Ссылка 3</a></p>
+                <p><a class="btn btn-default" href="<?=Yii::$app->urlManager->createUrl(['site/about', '#' => 'block3'])?>">Подробнее</a></p>
             </div>
         </div>
 
