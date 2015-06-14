@@ -101,17 +101,62 @@ class OrderSearch extends Order
             'id' => $this->id,
             'user_sender' => $userSender,
             'user_answer' => $userAnswer,
-            'date_create' => $this->date_create,
-            'date_finish' => $this->date_finish,
-            'date_update' => $this->date_update,
-            'date_deadline' => $this->date_deadline,
-            'date_start' => $this->date_start,
             'time_hours' => $this->time_hours,
             'complexity' => $this->complexity,
         ]);
 
         if ($userGroup->code == 'manager') {
             $query->orWhere(['user_answer' => null]);
+        }
+
+        if (!empty($this->date_create)) {
+            $dateArray = $this->getFormatDateArray($this->date_create);
+            $query->andFilterWhere([
+                'between',
+                'date_create',
+                $dateArray[0],
+                $dateArray[1]
+            ]);
+        }
+
+        if (!empty($this->date_update)) {
+            $dateArray = $this->getFormatDateArray($this->date_update);
+            $query->andFilterWhere([
+                'between',
+                'date_update',
+                $dateArray[0],
+                $dateArray[1]
+            ]);
+        }
+
+        if (!empty($this->date_deadline)) {
+            $dateArray = $this->getFormatDateArray($this->date_deadline);
+            $query->andFilterWhere([
+                'between',
+                'date_deadline',
+                $dateArray[0],
+                $dateArray[1]
+            ]);
+        }
+
+        if (!empty($this->date_start)) {
+            $dateArray = $this->getFormatDateArray($this->date_start);
+            $query->andFilterWhere([
+                'between',
+                'date_start',
+                $dateArray[0],
+                $dateArray[1]
+            ]);
+        }
+
+        if (!empty($this->date_finish)) {
+            $dateArray = $this->getFormatDateArray($this->date_finish);
+            $query->andFilterWhere([
+                'between',
+                'date_finish',
+                $dateArray[0],
+                $dateArray[1]
+            ]);
         }
 
         $query->andFilterWhere(['like', 'name', $this->name])
@@ -122,5 +167,36 @@ class OrderSearch extends Order
               ->andFilterWhere(['like', Status::tableName().'.name', $this->status]);
 
         return $dataProvider;
+    }
+
+    private function getFormatDateArray($dateString)
+    {
+        $dateTimestamp = strtotime($dateString);
+        $dateAt = date("Y-m-d", $dateTimestamp);
+        $dateEnd = date("Y-m-d", $dateTimestamp);
+
+        $h = date("H", $dateTimestamp);
+        $m = date("i", $dateTimestamp);
+
+        $hInt = intval($h);
+        $mInt = intval($m);
+
+        $dateAt .= " ".$h.":".$m.":00";
+
+        if ($hInt > 0) {
+            $dateEnd .= " ".$h;
+        } else {
+            $dateEnd .= " 23";;
+        }
+
+        if ($mInt > 0) {
+            $dateEnd .= ":".$m;
+        } else {
+            $dateEnd .= ":59";
+        }
+
+        $dateEnd .= ":59";
+
+        return [$dateAt, $dateEnd];
     }
 }
